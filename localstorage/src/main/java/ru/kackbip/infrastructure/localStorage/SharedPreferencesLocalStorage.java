@@ -4,7 +4,6 @@ import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
 
-import ru.kackbip.infrastructure.localStorage.ILocalStorage;
 import rx.AsyncEmitter;
 import rx.Observable;
 

@@ -5,14 +5,14 @@ apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'com.jfrog.bintray'
 
 group = 'ru.kackbip.infrastructure'
-version = '0.1.0'
+version = '0.1.2'
 
 bintray {
     user = 'kackbip'
     key = '12f5b02639d05683bb233b7f1ec95e9b081f9e10'
     pkg {
         repo = 'infrastructure'
-        name = 'local-storage'
+        name = 'localstorage'
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/vladimir-ryashentsev/infrastructure.git'
         version {

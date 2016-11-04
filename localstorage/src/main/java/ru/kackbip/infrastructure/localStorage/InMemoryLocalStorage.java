@@ -1,9 +1,10 @@
 package ru.kackbip.infrastructure.localStorage;
 
+import com.google.gson.Gson;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import ru.kackbip.infrastructure.localStorage.ILocalStorage;
 import rx.AsyncEmitter;
 import rx.Observable;
 
@@ -13,13 +14,19 @@ import rx.Observable;
 
 public class InMemoryLocalStorage implements ILocalStorage {
 
-    private Map<String, Object> repository = new HashMap<>();
+    private Map<String, String> repository = new HashMap<>();
+
+    private Gson gson;
+
+    public InMemoryLocalStorage(Gson gson){
+        this.gson = gson;
+    }
 
     @Override
     public Observable<Void> store(String key, Object object) {
         return Observable.fromEmitter(
                 emitter -> {
-                    repository.put(key, object);
+                    repository.put(key, gson.toJson(object));
                     emitter.onNext(null);
                     emitter.onCompleted();
                 },
@@ -30,8 +37,8 @@ public class InMemoryLocalStorage implements ILocalStorage {
     public <T> Observable<T> restore(String key, Class<T> clazz) {
         return Observable.fromEmitter(
                 emitter -> {
-                    @SuppressWarnings("unchecked") T object = (T) repository.get(key);
-                    emitter.onNext(object);
+                    String json = repository.get(key);
+                    emitter.onNext(gson.fromJson(json, clazz));
                     emitter.onCompleted();
                 },
                 AsyncEmitter.BackpressureMode.ERROR);
