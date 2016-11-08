@@ -10,6 +10,7 @@ import rx.observers.TestSubscriber;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -26,15 +27,17 @@ public class GsonPojoStorageTest {
     );
 
     private GsonPojoStorage storage;
+    private IStringStorage stringStorage;
+    private IStringifier stringifier;
 
     @Before
     public void init() {
-        IStringStorage stringStorage = mock(IStringStorage.class);
+        stringStorage = mock(IStringStorage.class);
         when(stringStorage.store(ACTUAL_KEY, STRINGIFIED_OBJECT)).thenReturn(Observable.empty());
         when(stringStorage.restore(ACTUAL_KEY)).thenReturn(Observable.just(STRINGIFIED_OBJECT));
         when(stringStorage.restore(EMPTY_KEY)).thenReturn(Observable.error(new NotFoundException("Not found!")));
 
-        IStringifier stringifier = mock(IStringifier.class);
+        stringifier = mock(IStringifier.class);
         when(stringifier.fromObject(STORED_OBJECT)).thenReturn(STRINGIFIED_OBJECT);
         when(stringifier.toObject(STRINGIFIED_OBJECT, SomeStoredClass.class)).thenReturn(STORED_OBJECT);
 
@@ -49,6 +52,9 @@ public class GsonPojoStorageTest {
         subscriber.assertNoErrors();
         assertTrue(subscriber.getOnNextEvents().isEmpty());
         subscriber.assertCompleted();
+
+        verify(stringifier).fromObject(STORED_OBJECT);
+        verify(stringStorage).store(ACTUAL_KEY, STRINGIFIED_OBJECT);
     }
 
     @Test
@@ -59,14 +65,19 @@ public class GsonPojoStorageTest {
         subscriber.assertNoErrors();
         subscriber.assertValue(STORED_OBJECT);
         subscriber.assertCompleted();
+
+        verify(stringifier).toObject(STRINGIFIED_OBJECT, SomeStoredClass.class);
+        verify(stringStorage).restore(ACTUAL_KEY);
     }
 
     @Test
-    public void throwWhenTryToRestoreNullObject() {
+    public void restoreNonExistentObject() {
         TestSubscriber<SomeStoredClass> subscriber = new TestSubscriber<>();
         storage.restore(EMPTY_KEY, SomeStoredClass.class).subscribe(subscriber);
 
         subscriber.assertError(NotFoundException.class);
         assertTrue(subscriber.getOnNextEvents().isEmpty());
+
+        verify(stringStorage).restore(EMPTY_KEY);
     }
 }

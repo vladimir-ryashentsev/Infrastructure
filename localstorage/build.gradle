@@ -5,7 +5,7 @@ apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'com.jfrog.bintray'
 
 group = 'ru.kackbip.infrastructure'
-version = '0.3.0'
+version = '0.2.0'
 
 bintray {
     user = 'kackbip'
