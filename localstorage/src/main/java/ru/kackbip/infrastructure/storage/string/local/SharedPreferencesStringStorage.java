@@ -2,13 +2,14 @@ package ru.kackbip.infrastructure.storage.string.local;
 
 import android.content.SharedPreferences;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
-import ru.kackbip.infrastructure.storage.NotFoundException;
 import ru.kackbip.infrastructure.storage.string.IStringStorage;
 import rx.AsyncEmitter;
 import rx.Observable;
+import rx.subjects.PublishSubject;
 
 /**
  * Created by ryashentsev on 09.10.2016.
@@ -16,39 +17,46 @@ import rx.Observable;
 
 public class SharedPreferencesStringStorage implements IStringStorage {
 
-    private SharedPreferences sharedPreferences;
-    private Gson gson;
+    private Map<String, PublishSubject<String>> subjects = new HashMap<>();
+    private SharedPreferences repository;
 
-    public SharedPreferencesStringStorage(SharedPreferences sharedPreferences) {
-        this.sharedPreferences = sharedPreferences;
-        gson = new GsonBuilder().create();
+    public SharedPreferencesStringStorage(SharedPreferences repository) {
+        this.repository = repository;
     }
 
     @Override
-    public Observable<Void> store(String key, String storedString) {
-        return Observable.fromEmitter(emitter -> {
-            try {
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(key, storedString);
-                editor.apply();
-                emitter.onCompleted();
-            } catch (Exception e) {
-                emitter.onError(e);
-            }
-        }, AsyncEmitter.BackpressureMode.ERROR);
+    public synchronized Observable<Void> store(String key, String storedString) {
+        return Observable.fromEmitter(
+                emitter -> {
+                    SharedPreferences.Editor editor = repository.edit();
+                    editor.putString(key, storedString);
+                    editor.apply();
+                    if (subjects.containsKey(key)) {
+                        subjects.get(key).onNext(storedString);
+                    }
+                    emitter.onCompleted();
+                },
+                AsyncEmitter.BackpressureMode.ERROR);
     }
 
     @Override
-    public Observable<String> restore(String key) {
-        return Observable.fromEmitter(emitter -> {
-            try {
-                String str = sharedPreferences.getString(key, null);
-                if (str == null) throw new NotFoundException(String.format("String under key \"%s\" not found!", key));
-                emitter.onNext(str);
-                emitter.onCompleted();
-            } catch (Exception e) {
-                emitter.onError(e);
-            }
-        }, AsyncEmitter.BackpressureMode.ERROR);
+    public synchronized Observable<String> observe(String key) {
+        if (!subjects.containsKey(key)) {
+            PublishSubject<String> subject = PublishSubject.create();
+            subjects.put(key, subject);
+        }
+        if(repository.contains(key)) return Observable.merge(
+                subjects.get(key),
+                Observable.just(repository.getString(key, null))
+        );
+        return subjects.get(key);
+    }
+
+    @Override
+    public Observable<String> get(String key) throws NoSuchElementException {
+        if(repository.contains(key)){
+            return Observable.just(repository.getString(key, null));
+        }
+        return Observable.error(new NoSuchElementException());
     }
 }

@@ -1,11 +1,10 @@
 apply plugin: 'com.android.library'
 apply plugin: 'me.tatarka.retrolambda'
-apply plugin: 'com.neenbedankt.android-apt'
 
 apply plugin: 'com.jfrog.bintray'
 
 group = 'ru.kackbip.infrastructure'
-version = '0.2.0'
+version = '0.2.2'
 
 bintray {
     user = 'kackbip'
@@ -17,7 +16,7 @@ bintray {
         vcsUrl = 'https://github.com/vladimir-ryashentsev/infrastructure.git'
         version {
             name = version
-            desc = 'Library for storing POJO on device.'
+            desc = 'Library for storing data on device.'
             released  = new Date()
         }
     }
@@ -60,5 +59,4 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.0.0'
     compile 'io.reactivex:rxjava:1.2.0'
     compile 'com.google.code.gson:gson:2.7'
-    apt 'com.google.dagger:dagger-compiler:2.7'
 }

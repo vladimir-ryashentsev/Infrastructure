@@ -33,5 +33,10 @@ public class SomeStoredClass{
         return stored1.getNum()==stored2.getNum() &&
                 areEquals(stored1.getInner(), stored2.getInner());
     }
+
+    @Override
+    public String toString() {
+        return String.format("%d {%s}", num, inner);
+    }
 }
 

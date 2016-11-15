@@ -25,8 +25,15 @@ public class GsonPojoStorage implements IPojoStorage {
     }
 
     @Override
-    public <ModelType> Observable<ModelType> restore(String key, Class<ModelType> clazz) {
-        return storage.restore(key)
+    public <ModelType> Observable<ModelType> get(String key, Class<ModelType> clazz) {
+        Observable<String> o = storage.get(key);
+        return o
+                .flatMap(string -> stringToObject(string, clazz));
+    }
+
+    @Override
+    public <ModelType> Observable<ModelType> observe(String key, Class<ModelType> clazz) {
+        return storage.observe(key)
                 .flatMap(string -> stringToObject(string, clazz));
     }
 
