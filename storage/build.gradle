@@ -11,7 +11,7 @@ bintray {
     key = '12f5b02639d05683bb233b7f1ec95e9b081f9e10'
     pkg {
         repo = 'infrastructure'
-        name = 'localstorage'
+        name = 'storage'
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/vladimir-ryashentsev/infrastructure.git'
         version {
