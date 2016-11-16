@@ -1,7 +1,5 @@
 package ru.kackbip.infrastructure.storage.string.local;
 
-import android.content.SharedPreferences;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -12,28 +10,24 @@ import rx.Observable;
 import rx.subjects.PublishSubject;
 
 /**
- * Created by ryashentsev on 09.10.2016.
+ * Created by ryashentsev on 03.11.2016.
  */
 
-public class SharedPreferencesStringStorage implements IStringStorage {
+public class InMemoryStringStorage implements IStringStorage {
 
+    private Map<String, String> repository = new HashMap<>();
     private Map<String, PublishSubject<String>> subjects = new HashMap<>();
-    private SharedPreferences repository;
-
-    public SharedPreferencesStringStorage(SharedPreferences repository) {
-        this.repository = repository;
-    }
 
     @Override
     public synchronized Observable<Void> store(String key, String storedString) {
+        if(storedString==null) return Observable.error(new NullPointerException());
         return Observable.fromEmitter(
                 emitter -> {
-                    SharedPreferences.Editor editor = repository.edit();
-                    editor.putString(key, storedString);
-                    editor.apply();
+                    repository.put(key, storedString);
                     if (subjects.containsKey(key)) {
                         subjects.get(key).onNext(storedString);
                     }
+                    emitter.onNext(null);
                     emitter.onCompleted();
                 },
                 AsyncEmitter.BackpressureMode.ERROR);
@@ -45,17 +39,17 @@ public class SharedPreferencesStringStorage implements IStringStorage {
             PublishSubject<String> subject = PublishSubject.create();
             subjects.put(key, subject);
         }
-        if(repository.contains(key)) return Observable.merge(
+        if(repository.containsKey(key)) return Observable.merge(
                 subjects.get(key),
-                Observable.just(repository.getString(key, null))
+                Observable.just(repository.get(key))
         );
         return subjects.get(key);
     }
 
     @Override
-    public Observable<String> get(String key) throws NoSuchElementException {
-        if(repository.contains(key)){
-            return Observable.just(repository.getString(key, null));
+    public synchronized Observable<String> get(String key) throws NoSuchElementException {
+        if(repository.containsKey(key)){
+            return Observable.just(repository.get(key));
         }
         return Observable.error(new NoSuchElementException());
     }

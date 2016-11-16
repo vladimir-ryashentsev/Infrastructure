@@ -38,7 +38,7 @@ public class GsonPojoStorageTest {
     @Before
     public void init() {
         stringStorage = mock(IStringStorage.class);
-        when(stringStorage.store(ACTUAL_KEY, STRINGIFIED_OBJECT)).thenReturn(Observable.empty());
+        when(stringStorage.store(ACTUAL_KEY, STRINGIFIED_OBJECT)).thenReturn(Observable.just(null));
         when(stringStorage.store(ACTUAL_KEY, null)).thenThrow(new NullPointerException());
         when(stringStorage.observe(ACTUAL_KEY)).thenReturn(Observable.create(subscriber -> {subscriber.onNext(STRINGIFIED_OBJECT);}));
         when(stringStorage.get(ACTUAL_KEY)).thenReturn(Observable.just(STRINGIFIED_OBJECT));
@@ -130,11 +130,16 @@ public class GsonPojoStorageTest {
         observeSubscriber.assertNoErrors();
     }
 
+    @Test
+    public void emitNullAndCompletes_WhenStore(){
+        TestSubscriber<Void> subscriber = new TestSubscriber<>();
+        storage.store(ACTUAL_KEY, STORED_OBJECT).subscribe(subscriber);
+        subscriber.assertValue(null);
+        subscriber.assertCompleted();
+        subscriber.assertNoErrors();
+    }
+
     private void store(String key, Object object){
-        TestSubscriber<Void> storeSubscriber = new TestSubscriber<>();
-        storage.store(key, object).subscribe(storeSubscriber);
-        assertTrue(storeSubscriber.getOnNextEvents().isEmpty());
-        storeSubscriber.assertNoErrors();
-        storeSubscriber.assertCompleted();
+        storage.store(key, object).subscribe();
     }
 }
