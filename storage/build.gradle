@@ -8,7 +8,7 @@ version = '0.2.3'
 
 bintray {
     user = 'kackbip'
-    key = '12f5b02639d05683bb233b7f1ec95e9b081f9e10'
+    key = System.getenv('BINTRAY_API_KEY')
     pkg {
         repo = 'infrastructure'
         name = 'storage'

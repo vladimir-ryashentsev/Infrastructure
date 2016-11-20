@@ -7,3 +7,6 @@
 /build
 /captures
 .externalNativeBuild
+gradle/
+storage/libs/
+storage/src/main/res/drawable/
