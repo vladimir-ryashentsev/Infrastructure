@@ -4,7 +4,7 @@ apply plugin: 'me.tatarka.retrolambda'
 apply plugin: 'com.jfrog.bintray'
 
 group = 'ru.kackbip.infrastructure'
-version = '0.2.3'
+version = '0.2.4'
 
 bintray {
     user = 'kackbip'
